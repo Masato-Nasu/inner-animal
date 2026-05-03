@@ -1,0 +1,14 @@
+{
+  "name": "INNER ANIMAL",
+  "short_name": "INNER ANIMAL",
+  "description": "48の質問で、選び方のクセを動物タイプに。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fffaf3",
+  "theme_color": "#f2bfc8",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
