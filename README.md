@@ -6,6 +6,14 @@
 
 https://inner-animal.pages.dev/
 
+## Screenshots
+
+### screenshot1
+![INNER ANIMAL screenshot 1](./screenshot1.png)
+
+### screenshot2
+![INNER ANIMAL screenshot 2](./screenshot2.png)
+
 ## できること
 
 - 48問の2択診断
