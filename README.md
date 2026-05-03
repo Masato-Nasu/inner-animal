@@ -4,7 +4,7 @@
 
 ## 実行画面
 
-デプロイ後のURLをここに入れてください。
+https://inner-animal.pages.dev/
 
 ## できること
 
