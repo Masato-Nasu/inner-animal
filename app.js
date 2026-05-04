@@ -1,3 +1,20 @@
+let deferredInstallPrompt = null;
+let pwaInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  const btn = document.querySelector('#installPwaBtn');
+  if (btn && !pwaInstalled) btn.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  pwaInstalled = true;
+  deferredInstallPrompt = null;
+  const btn = document.querySelector('#installPwaBtn');
+  if (btn) btn.hidden = true;
+});
+
 const AXES = {
   aesthetic: '雰囲気',
   practical: 'ちゃんと',
@@ -111,6 +128,208 @@ const ANIMALS = {
 };
 
 
+
+
+
+// 表示用の動物別グラフ。回答値をそのまま比率表示すると、全タイプが似たり、逆に極端になりすぎるため、
+// 結果画面ではタイプごとの「らしさ」が自然に見える値へ整える。
+// 40台は弱めの傾向として少量だけ使い、90台の連発は避ける。
+const TYPE_METER_PROFILES = {
+  ASIC: [
+    { key: 'aesthetic', label: '雰囲気', percent: 84 },
+    { key: 'safe', label: '受け止め', percent: 72 },
+    { key: 'inner', label: '自分軸', percent: 88 },
+    { key: 'complete', label: '完成', percent: 76 }
+  ],
+  ASIB: [
+    { key: 'aesthetic', label: '雰囲気', percent: 76 },
+    { key: 'safe', label: '受け止め', percent: 86 },
+    { key: 'inner', label: '自分軸', percent: 68 },
+    { key: 'becoming', label: '伸びしろ', percent: 56 }
+  ],
+  ASOC: [
+    { key: 'aesthetic', label: '雰囲気', percent: 82 },
+    { key: 'safe', label: '受け止め', percent: 70 },
+    { key: 'outer', label: 'みんな軸', percent: 84 },
+    { key: 'complete', label: '完成', percent: 80 }
+  ],
+  ASOB: [
+    { key: 'aesthetic', label: '雰囲気', percent: 78 },
+    { key: 'safe', label: '受け止め', percent: 82 },
+    { key: 'outer', label: 'みんな軸', percent: 80 },
+    { key: 'becoming', label: '伸びしろ', percent: 64 }
+  ],
+  ARIC: [
+    { key: 'aesthetic', label: '雰囲気', percent: 84 },
+    { key: 'risk', label: '攻め', percent: 66 },
+    { key: 'inner', label: '自分軸', percent: 88 },
+    { key: 'complete', label: '完成', percent: 72 }
+  ],
+  ARIB: [
+    { key: 'aesthetic', label: '雰囲気', percent: 82 },
+    { key: 'risk', label: '攻め', percent: 74 },
+    { key: 'inner', label: '自分軸', percent: 86 },
+    { key: 'becoming', label: '伸びしろ', percent: 76 }
+  ],
+  AROC: [
+    { key: 'aesthetic', label: '雰囲気', percent: 86 },
+    { key: 'risk', label: '攻め', percent: 82 },
+    { key: 'outer', label: 'みんな軸', percent: 68 },
+    { key: 'complete', label: '完成', percent: 78 }
+  ],
+  AROB: [
+    { key: 'aesthetic', label: '雰囲気', percent: 80 },
+    { key: 'risk', label: '攻め', percent: 78 },
+    { key: 'outer', label: 'みんな軸', percent: 62 },
+    { key: 'becoming', label: '伸びしろ', percent: 86 }
+  ],
+  PSIC: [
+    { key: 'practical', label: 'ちゃんと', percent: 86 },
+    { key: 'safe', label: '受け止め', percent: 80 },
+    { key: 'inner', label: '自分軸', percent: 62 },
+    { key: 'complete', label: '完成', percent: 84 }
+  ],
+  PSIB: [
+    { key: 'practical', label: 'ちゃんと', percent: 74 },
+    { key: 'safe', label: '受け止め', percent: 84 },
+    { key: 'inner', label: '自分軸', percent: 54 },
+    { key: 'becoming', label: '伸びしろ', percent: 70 }
+  ],
+  PSOC: [
+    { key: 'practical', label: 'ちゃんと', percent: 82 },
+    { key: 'safe', label: '受け止め', percent: 78 },
+    { key: 'outer', label: 'みんな軸', percent: 88 },
+    { key: 'complete', label: '完成', percent: 72 }
+  ],
+  PSOB: [
+    { key: 'practical', label: 'ちゃんと', percent: 66 },
+    { key: 'safe', label: '受け止め', percent: 72 },
+    { key: 'outer', label: 'みんな軸', percent: 86 },
+    { key: 'becoming', label: '伸びしろ', percent: 82 }
+  ],
+  PRIC: [
+    { key: 'practical', label: 'ちゃんと', percent: 78 },
+    { key: 'risk', label: '攻め', percent: 68 },
+    { key: 'inner', label: '自分軸', percent: 86 },
+    { key: 'complete', label: '完成', percent: 78 }
+  ],
+  PRIB: [
+    { key: 'practical', label: 'ちゃんと', percent: 58 },
+    { key: 'risk', label: '攻め', percent: 82 },
+    { key: 'inner', label: '自分軸', percent: 72 },
+    { key: 'becoming', label: '伸びしろ', percent: 88 }
+  ],
+  PROC: [
+    { key: 'practical', label: 'ちゃんと', percent: 82 },
+    { key: 'risk', label: '攻め', percent: 86 },
+    { key: 'outer', label: 'みんな軸', percent: 72 },
+    { key: 'complete', label: '完成', percent: 80 }
+  ],
+  PROB: [
+    { key: 'practical', label: 'ちゃんと', percent: 52 },
+    { key: 'risk', label: '攻め', percent: 88 },
+    { key: 'outer', label: 'みんな軸', percent: 64 },
+    { key: 'becoming', label: '伸びしろ', percent: 86 }
+  ]
+};
+
+
+
+const TYPE_CODE_LEGEND = {
+  A: { en: 'Atmosphere', jp: '雰囲気より', desc: '空気・余白・世界観・直感を大切にする' },
+  P: { en: 'Practical', jp: 'ちゃんとより', desc: '実用性・わかりやすさ・確実さを大切にする' },
+  S: { en: 'Safe', jp: '受け止めより', desc: '安心・安定・調和・やさしさを大切にする' },
+  R: { en: 'Risk', jp: '攻めより', desc: '挑戦・変化・意外性・冒険を大切にする' },
+  I: { en: 'Inner', jp: '自分軸より', desc: '自分の感覚・納得・内面のこだわりを大切にする' },
+  O: { en: 'Outer', jp: 'みんな軸より', desc: '伝わりやすさ・共有・場との関係を大切にする' },
+  C: { en: 'Complete', jp: '完成より', desc: '完成度・まとまり・整った状態を大切にする' },
+  B: { en: 'Becoming', jp: '伸びしろより', desc: '変化・未完成・育っていく可能性を大切にする' }
+};
+
+const AXIS_PAIRS = [
+  { leftKey: 'aesthetic', leftLabel: '雰囲気', leftLetter: 'A', rightKey: 'practical', rightLabel: 'ちゃんと', rightLetter: 'P' },
+  { leftKey: 'safe', leftLabel: '受け止め', leftLetter: 'S', rightKey: 'risk', rightLabel: '攻め', rightLetter: 'R' },
+  { leftKey: 'inner', leftLabel: '自分軸', leftLetter: 'I', rightKey: 'outer', rightLabel: 'みんな軸', rightLetter: 'O' },
+  { leftKey: 'complete', leftLabel: '完成', leftLetter: 'C', rightKey: 'becoming', rightLabel: '伸びしろ', rightLetter: 'B' }
+];
+
+function selectedStrengthFromProfile(code, letter) {
+  const profile = TYPE_METER_PROFILES[code] || TYPE_METER_PROFILES.ARIB;
+  const keyByLetter = {
+    A: 'aesthetic', P: 'practical', S: 'safe', R: 'risk', I: 'inner', O: 'outer', C: 'complete', B: 'becoming'
+  };
+  const key = keyByLetter[letter];
+  const found = profile.find(m => m.key === key);
+  const fallback = { A: 76, P: 76, S: 76, R: 74, I: 76, O: 76, C: 74, B: 74 }[letter] || 72;
+  return Math.max(52, Math.min(88, found ? found.percent : fallback));
+}
+
+function getBalancePairs(code) {
+  const c = String(code || 'ARIB').toUpperCase();
+  return AXIS_PAIRS.map((pair, i) => {
+    const selected = c[i];
+    const isLeft = selected === pair.leftLetter;
+    const strength = selectedStrengthFromProfile(c, selected);
+    const leftPercent = isLeft ? strength : 100 - strength;
+    const rightPercent = isLeft ? 100 - strength : strength;
+    return {
+      ...pair,
+      selected,
+      selectedLabel: isLeft ? pair.leftLabel : pair.rightLabel,
+      selectedJP: TYPE_CODE_LEGEND[selected]?.jp || '',
+      leftPercent,
+      rightPercent,
+      leftActive: leftPercent >= rightPercent,
+      rightActive: rightPercent > leftPercent
+    };
+  });
+}
+
+function typeCodeTemplate(result) {
+  const code = result.code;
+  const letters = code.split('');
+  return `<section class="type-code-card" aria-label="TYPE CODE">
+    <div class="type-code-head">
+      <span>TYPE CODE</span>
+      <strong>${escapeHTML(code)}</strong>
+    </div>
+    <div class="type-code-grid">
+      ${letters.map(letter => {
+        const item = TYPE_CODE_LEGEND[letter];
+        return `<div class="type-code-chip"><b>${escapeHTML(letter)}</b><span>${escapeHTML(item.en)}</span><small>${escapeHTML(item.jp)}</small></div>`;
+      }).join('')}
+    </div>
+  </section>`;
+}
+
+function balanceTemplate(result) {
+  const pairs = getBalancePairs(result.code);
+  return `<section class="balance-card" aria-label="あなたのバランス">
+    <div class="section-title compact"><h2>あなたのバランス</h2><span>どちら寄りか</span></div>
+    <div class="balance-list">
+      ${pairs.map(balancePairTemplate).join('')}
+    </div>
+  </section>`;
+}
+
+function balancePairTemplate(pair) {
+  const pos = Math.max(4, Math.min(96, pair.rightPercent));
+  return `<div class="balance-row">
+    <div class="balance-labels">
+      <span class="${pair.leftActive ? 'active' : ''}">${escapeHTML(pair.leftLabel)} <b>${pair.leftPercent}%</b></span>
+      <span class="${pair.rightActive ? 'active' : ''}"><b>${pair.rightPercent}%</b> ${escapeHTML(pair.rightLabel)}</span>
+    </div>
+    <div class="balance-track" aria-hidden="true">
+      <div class="balance-mid"></div>
+      <div class="balance-fill ${pair.leftActive ? 'left' : 'right'}" style="${pair.leftActive ? `left:${pos}%;width:${50-pos}%` : `left:50%;width:${pos-50}%`}"></div>
+      <div class="balance-dot" style="left:${pos}%"></div>
+    </div>
+  </div>`;
+}
+
+function getProfileMeters(code) {
+  return (TYPE_METER_PROFILES[code] || TYPE_METER_PROFILES.ARIB).map(m => ({ ...m }));
+}
 
 const RESULT_DETAILS = {
   ASIC: {
@@ -339,7 +558,7 @@ function makeResultFromCode(code, scores = null, options = {}) {
   return {
     code: safeCode,
     scores: finalScores,
-    meters: getMeters(finalScores),
+    meters: getProfileMeters(safeCode),
     animal: ANIMALS[safeCode],
     compatibility: getCompatibility(safeCode),
     answers: [],
@@ -417,6 +636,14 @@ function renderHome() {
   document.querySelector('#heroAnimals').innerHTML = ['fox','cat','rabbit'].map(key => `<div class="animal-badge">${animalSVG(key)}</div>`).join('');
   document.querySelector('#startBtn').addEventListener('click', startQuiz);
   document.querySelector('#animalsBtn').addEventListener('click', () => { state.screen = 'animals'; render(); });
+  const installBtn = document.querySelector('#installPwaBtn');
+  if (installBtn) {
+    installBtn.hidden = pwaInstalled;
+    installBtn.addEventListener('click', installPWA);
+    if (!deferredInstallPrompt && !pwaInstalled) {
+      installBtn.textContent = 'ホーム画面に追加する方法';
+    }
+  }
   const saved = loadSavedResult();
   const resume = document.querySelector('#resumeBtn');
   if (saved) {
@@ -425,6 +652,22 @@ function renderHome() {
   } else {
     resume.hidden = true;
   }
+}
+
+async function installPWA() {
+  if (deferredInstallPrompt) {
+    const promptEvent = deferredInstallPrompt;
+    deferredInstallPrompt = null;
+    promptEvent.prompt();
+    await promptEvent.userChoice.catch(() => null);
+    return;
+  }
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const message = isIOS
+    ? 'Safariで共有ボタンを押して、「ホーム画面に追加」を選んでください。'
+    : 'ブラウザのメニューから「アプリをインストール」または「ホーム画面に追加」を選んでください。表示されない場合は、ページを再読み込みしてからもう一度お試しください。';
+  alert(message);
 }
 
 function startQuiz() {
@@ -512,7 +755,7 @@ function calculateResult(scores, answers) {
     pickAxis(scores, 'complete', 'becoming', 'C', 'B', 'B')
   ].join('');
   const animal = ANIMALS[code] || ANIMALS.ARIB;
-  const meters = getMeters(scores);
+  const meters = getProfileMeters(code);
   const compatibility = getCompatibility(code);
   return { code, scores, meters, animal, compatibility, answers, createdAt: new Date().toISOString() };
 }
@@ -561,12 +804,11 @@ function renderResult(result) {
       <p class="result-eyebrow">あなたのINNER ANIMALは…</p>
       <h1 class="result-title">${escapeHTML(animal.name)}</h1>
       <span class="result-subtitle">${escapeHTML(animal.subtitle)}</span>
+      ${typeCodeTemplate(result)}
       <div class="animal-stage"><div class="animal-badge">${animalSVG(animal.key)}</div></div>
       <p class="result-desc">${escapeHTML(animal.description)}</p>
       ${result.shared ? sharedResultCtaTemplate(result) : ''}
-      <div class="meter-list">
-        ${result.meters.map(meterTemplate).join('')}
-      </div>
+      ${balanceTemplate(result)}
       <div class="info-grid">
         <div class="info-box"><h3>大事にしているもの</h3><p>${animal.values.map(escapeHTML).join(' / ')}</p></div>
         <div class="info-box"><h3>手放しがちなもの</h3><p>${animal.abandoned.map(escapeHTML).join(' / ')}</p></div>
@@ -579,6 +821,7 @@ function renderResult(result) {
       <div class="compat-list">
         ${best.map(item => compatItemTemplate(item, true)).join('')}
       </div>
+      ${friendCompatibilityTemplate(result)}
       <div class="action-stack">
         <button class="secondary-btn" id="showCompatibility" type="button">すべての相性を見る</button>
         <button class="secondary-btn" id="showAnimals" type="button">16のアニマルを見る</button>
@@ -593,6 +836,7 @@ function renderResult(result) {
   `;
   const tryFromShared = app.querySelector('#tryFromShared');
   if (tryFromShared) tryFromShared.addEventListener('click', startQuiz);
+  bindFriendCompatibility(result);
   app.querySelector('#showCompatibility').addEventListener('click', () => { state.screen = 'compatibility'; render(); });
   app.querySelector('#showAnimals').addEventListener('click', () => { state.screen = 'animals'; render(); });
   app.querySelector('#saveCard').addEventListener('click', () => saveResultCard(result));
@@ -622,6 +866,48 @@ function compatItemTemplate(item, showComment = false) {
     <div><strong>${escapeHTML(item.animal.name)}</strong>${showComment ? `<small>${escapeHTML(item.comment)}</small>` : ''}</div>
     <div class="percent">${item.percent}%</div>
   </article>`;
+}
+
+function friendCompatibilityTemplate(result) {
+  const defaultCode = result.compatibility[0]?.code || ANIMAL_ORDER.find(code => code !== result.code);
+  const options = ANIMAL_ORDER
+    .filter(code => code !== result.code)
+    .map(code => `<option value="${escapeHTML(code)}" ${code === defaultCode ? 'selected' : ''}>${escapeHTML(ANIMALS[code].name)}</option>`)
+    .join('');
+  const defaultItem = result.compatibility.find(item => item.code === defaultCode) || result.compatibility[0];
+  return `<section class="friend-compat" aria-label="友達のタイプと相性を見る">
+    <div class="friend-compat-head">
+      <div>
+        <h3>友達のタイプと相性を見てみよう</h3>
+        <p>友達のINNER ANIMALを選ぶと、あなたとの相性％が見られます。</p>
+      </div>
+    </div>
+    <label class="friend-select-label" for="friendAnimalSelect">友達のタイプ</label>
+    <select class="friend-select" id="friendAnimalSelect">${options}</select>
+    <div class="friend-result" id="friendCompatibilityResult">${friendCompatibilityItemTemplate(defaultItem)}</div>
+  </section>`;
+}
+
+function friendCompatibilityItemTemplate(item) {
+  if (!item) return '';
+  return `<article class="friend-result-card">
+    <div class="friend-result-visual animal-badge">${animalSVG(item.animal.key)}</div>
+    <div>
+      <strong>${escapeHTML(item.animal.name)}</strong>
+      <small>${escapeHTML(item.comment)}</small>
+    </div>
+    <div class="friend-percent">${item.percent}%</div>
+  </article>`;
+}
+
+function bindFriendCompatibility(result) {
+  const select = app.querySelector('#friendAnimalSelect');
+  const output = app.querySelector('#friendCompatibilityResult');
+  if (!select || !output) return;
+  select.addEventListener('change', () => {
+    const item = result.compatibility.find(entry => entry.code === select.value);
+    output.innerHTML = friendCompatibilityItemTemplate(item);
+  });
 }
 
 
@@ -679,7 +965,7 @@ function animalCardTemplate(animal) {
     <div class="animal-type-body">
       <div class="animal-type-head"><span>${escapeHTML(animal.emoji)}</span><strong>${escapeHTML(animal.name)}</strong></div>
       <p>${escapeHTML(animal.subtitle)}</p>
-      <small>${escapeHTML(axisTextFromCode(animal.code))}</small>
+      <small>TYPE ${escapeHTML(animal.code)}｜${escapeHTML(axisTextFromCode(animal.code))}</small>
       <button class="tiny-btn" type="button" data-animal-code="${escapeHTML(animal.code)}">詳しく見る</button>
     </div>
   </article>`;
@@ -690,6 +976,7 @@ function renderCompatibility(result) {
   app.innerHTML = `
     <section class="compat-card card">
       <div class="section-title"><h2>${escapeHTML(result.animal.name)}の<br>すべての相性</h2><span>全15タイプ</span></div>
+      ${friendCompatibilityTemplate(result)}
       <div class="compat-list">${result.compatibility.map(item => compatItemTemplate(item, true)).join('')}</div>
       <div class="action-stack">
         <button class="primary-btn" id="shareCompatibility" type="button">相性BEST3をシェア</button>
@@ -697,6 +984,7 @@ function renderCompatibility(result) {
       </div>
     </section>
   `;
+  bindFriendCompatibility(result);
   app.querySelector('#backResult').addEventListener('click', () => { state.screen = 'result'; render(); });
   app.querySelector('#shareCompatibility').addEventListener('click', () => shareResult(result));
 }
@@ -711,7 +999,9 @@ function renderShare(result) {
         <p class="share-title">INNER ANIMAL</p>
         <h1 class="share-animal-name">${escapeHTML(animal.name)}</h1>
         <div class="share-subtitle">${escapeHTML(animal.subtitle)}</div>
+        <div class="share-type-code">TYPE CODE：${escapeHTML(result.code)}</div>
         <div class="animal-badge">${animalSVG(animal.key)}</div>
+        <div class="share-balance-mini">${getBalancePairs(result.code).map(p => `<span>${p.leftLabel} ${p.leftPercent}%｜${p.rightPercent}% ${p.rightLabel}</span>`).join('')}</div>
         <div class="best-mini">なかよし相性 BEST 3<br>${best.map((b,i)=>`${i+1}. ${b.animal.name} ${b.percent}%`).join('<br>')}</div>
       </div>
       <div class="action-stack">
@@ -766,7 +1056,7 @@ async function shareText(payload) {
 
 function resultShareText(result) {
   const best = result.compatibility.slice(0, 3);
-  return `私のINNER ANIMALは\n${result.animal.name} でした。\n\nなかよし相性BEST3\n${best.map(b => `${b.animal.emoji} ${b.animal.animal} ${b.percent}%`).join('\n')}\n\n#INNERANIMAL #動物タイプ診断`;
+  return `私のINNER ANIMALは\n${result.animal.name}（TYPE ${result.code}）でした。\n\nなかよし相性BEST3\n${best.map(b => `${b.animal.emoji} ${b.animal.animal} ${b.percent}%`).join('\n')}\n\n#INNERANIMAL #動物タイプ診断`;
 }
 
 function resultSharePayload(result) {
@@ -865,80 +1155,166 @@ function shareApp() {
 async function createResultCardCanvas(result) {
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
-  canvas.height = 1350;
+  canvas.height = 1600;
   const ctx = canvas.getContext('2d');
   const animal = result.animal;
   const best = result.compatibility.slice(0,3);
 
+  // v1.12: Share card redesigned to feel cuter, cleaner, and more premium.
   ctx.fillStyle = '#fffaf3';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  drawBlob(ctx, 160, 170, 250, '#f8dce2');
-  drawBlob(ctx, 910, 300, 230, '#d8e7d5');
-  drawBlob(ctx, 900, 1120, 320, '#fff1bb');
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = 'rgba(216,181,111,.55)';
+  // Soft background blobs — calmer than the app screen, but still shareable.
+  drawBlob(ctx, 135, 170, 210, '#f8dce2');
+  drawBlob(ctx, 940, 230, 250, '#dcead8');
+  drawBlob(ctx, 870, 1330, 360, '#fff1bb');
+  drawBlob(ctx, 230, 1040, 220, '#edf4f0');
+
+  // Main card frame.
+  ctx.fillStyle = 'rgba(255,255,255,.72)';
+  roundRect(ctx, 58, 58, 964, 1484, 58, false, true);
+  ctx.strokeStyle = 'rgba(216,181,111,.72)';
   ctx.lineWidth = 4;
-  roundRect(ctx, 52, 52, 976, 1246, 54, true, false);
+  roundRect(ctx, 58, 58, 964, 1484, 58, true, false);
 
+  // Header.
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4d3d35';
-  ctx.font = '700 54px Georgia, serif';
-  ctx.fillText('INNER ANIMAL', 540, 150);
-  ctx.font = '500 28px sans-serif';
+  ctx.font = '700 52px Georgia, "Times New Roman", serif';
+  ctx.fillText('INNER ANIMAL', 540, 145);
+  ctx.font = '600 27px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.fillStyle = '#8a746b';
-  ctx.fillText('あなたの中の動物がわかる診断', 540, 198);
+  ctx.fillText('あなたの中の動物がわかる診断', 540, 193);
 
-  ctx.font = '900 72px sans-serif';
+  // Result name.
+  ctx.font = '900 76px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.fillStyle = '#4d3d35';
-  wrapCanvasText(ctx, animal.name, 540, 292, 880, 82);
-  ctx.font = '700 30px sans-serif';
+  wrapCanvasText(ctx, animal.name, 540, 290, 850, 84);
+  ctx.font = '800 32px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.fillStyle = animal.accent || '#df8fa0';
-  ctx.fillText(animal.subtitle, 540, 366);
+  ctx.fillText(animal.subtitle, 540, 368);
 
-  const svgURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(animalSVG(animal.key, 420));
-  const img = await loadImage(svgURL);
-  ctx.drawImage(img, 330, 405, 420, 420);
+  // Cute animal hero. Keep the share card consistent with the in-app animal illustration style.
+  ctx.save();
+  ctx.fillStyle = animal.color || '#f7d3bd';
+  ctx.globalAlpha = .38;
+  ctx.beginPath();
+  ctx.arc(540, 570, 176, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
-  let y = 875;
-  ctx.textAlign = 'left';
-  ctx.font = '800 28px sans-serif';
+  try {
+    const img = await svgToImage(animalSVG(animal.key, 320));
+    ctx.drawImage(img, 370, 400, 340, 340);
+  } catch (e) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '220px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif';
+    ctx.fillText(animal.emoji || '🐾', 540, 573);
+    ctx.restore();
+  }
+
+  // Small sparkles around the hero.
+  ctx.fillStyle = '#d8b56f';
+  ctx.font = '36px Georgia, serif';
+  ctx.fillText('✦', 350, 505);
+  ctx.fillText('✦', 742, 495);
+  ctx.fillText('✧', 755, 660);
+  ctx.fillText('♡', 350, 666);
+
+  // TYPE CODE.
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,.68)';
+  roundRect(ctx, 260, 752, 560, 86, 28, false, true);
+  ctx.strokeStyle = 'rgba(232,219,205,.9)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 260, 752, 560, 86, 28, true, false);
+  ctx.font = '800 24px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.fillStyle = '#8a746b';
+  ctx.fillText('TYPE CODE', 540, 782);
+  ctx.font = '900 42px Georgia, "Times New Roman", serif';
   ctx.fillStyle = '#4d3d35';
-  ctx.fillText('あなたの選び方', 120, y);
-  y += 34;
-  result.meters.forEach((m, i) => {
-    const yy = y + i * 54;
-    ctx.font = '700 25px sans-serif';
-    ctx.fillStyle = '#4d3d35';
-    ctx.fillText(m.label, 120, yy + 24);
-    ctx.fillStyle = 'rgba(232,219,205,.85)';
-    roundRect(ctx, 270, yy, 520, 18, 9, false, true);
-    const grad = ctx.createLinearGradient(270, yy, 790, yy);
+  ctx.fillText(result.code.split('').join('  '), 540, 823);
+
+  // Bipolar balance bars.
+  let y = 892;
+  ctx.textAlign = 'left';
+  ctx.font = '900 30px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.fillStyle = '#4d3d35';
+  ctx.fillText('あなたのバランス', 128, y);
+  y += 38;
+  getBalancePairs(result.code).forEach((pair, i) => {
+    const yy = y + i * 60;
+    const barX = 220;
+    const barW = 640;
+    const barY = yy + 26;
+    const dotX = barX + barW * (pair.rightPercent / 100);
+    ctx.font = '800 24px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = pair.leftActive ? '#4d3d35' : '#8a746b';
+    ctx.fillText(`${pair.leftLabel} ${pair.leftPercent}%`, 128, yy + 18);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = pair.rightActive ? '#4d3d35' : '#8a746b';
+    ctx.fillText(`${pair.rightPercent}% ${pair.rightLabel}`, 952, yy + 18);
+
+    ctx.fillStyle = 'rgba(232,219,205,.95)';
+    roundRect(ctx, barX, barY, barW, 18, 9, false, true);
+    ctx.fillStyle = 'rgba(138,116,107,.24)';
+    ctx.fillRect(barX + barW / 2, barY - 5, 2, 28);
+    const grad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
     grad.addColorStop(0, '#df8fa0');
     grad.addColorStop(1, '#7ead8b');
     ctx.fillStyle = grad;
-    roundRect(ctx, 270, yy, 520 * (m.percent/100), 18, 9, false, true);
-    ctx.font = '800 25px sans-serif';
-    ctx.fillStyle = '#df8fa0';
-    ctx.fillText(`${m.percent}%`, 820, yy + 24);
+    if (pair.leftActive) roundRect(ctx, dotX, barY, barX + barW / 2 - dotX, 18, 9, false, true);
+    else roundRect(ctx, barX + barW / 2, barY, dotX - (barX + barW / 2), 18, 9, false, true);
+    ctx.fillStyle = '#fffaf3';
+    ctx.beginPath();
+    ctx.arc(dotX, barY + 9, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = pair.leftActive ? '#df8fa0' : '#7ead8b';
+    ctx.lineWidth = 5;
+    ctx.stroke();
   });
+  y = 1000;
 
-  y += 245;
-  ctx.font = '800 28px sans-serif';
+  // Best compatibility as a compact clean panel.
+  // Keep the panel fully inside the frame and give it enough room from the balance bars.
+  y += 250;
+  const compX = 150;
+  const compW = 780;
+  const compY = y - 22;
+  ctx.fillStyle = 'rgba(255,255,255,.62)';
+  roundRect(ctx, compX, compY, compW, 186, 30, false, true);
+  ctx.strokeStyle = 'rgba(216,181,111,.35)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, compX, compY, compW, 186, 30, true, false);
+
+  ctx.font = '900 30px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.fillStyle = '#4d3d35';
-  ctx.fillText('なかよし相性 BEST 3', 120, y);
-  y += 46;
-  ctx.font = '700 30px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('なかよし相性 BEST 3', compX + 36, y + 18);
   best.forEach((b, i) => {
+    const rowY = y + 60 + i * 38;
+    ctx.font = '800 28px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif';
     ctx.fillStyle = '#4d3d35';
-    ctx.fillText(`${i+1}. ${b.animal.animal}`, 140, y + i * 42);
+    ctx.textAlign = 'left';
+    ctx.fillText(`${i+1}. ${b.animal.emoji} ${b.animal.animal}`, compX + 52, rowY);
+    ctx.textAlign = 'right';
     ctx.fillStyle = '#df8fa0';
-    ctx.fillText(`${b.percent}%`, 760, y + i * 42);
+    ctx.font = '900 29px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillText(`${b.percent}%`, compX + compW - 36, rowY);
+    ctx.textAlign = 'left';
   });
 
+  // Footer CTA. The image itself cannot be clickable, so make the next action obvious.
   ctx.textAlign = 'center';
-  ctx.font = '700 24px sans-serif';
+  ctx.font = '800 27px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.fillStyle = '#4d3d35';
+  ctx.fillText('あなたの中の動物も診断してみてください', 540, 1498);
+  ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.fillStyle = '#8a746b';
-  ctx.fillText('#INNERANIMAL #動物タイプ診断', 540, 1246);
+  ctx.fillText('inner-animal.pages.dev  #INNERANIMAL #動物タイプ診断', 540, 1538);
 
   return canvas;
 }
@@ -963,6 +1339,12 @@ function loadImage(src) {
     img.onerror = reject;
     img.src = src;
   });
+}
+
+function svgToImage(svg) {
+  const svgText = String(svg).replace(/class="[^"]*"/g, '');
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
+  return loadImage(url);
 }
 
 function drawBlob(ctx, x, y, r, color) {
@@ -1048,7 +1430,7 @@ backBtn.addEventListener('click', () => {
 homeBtn.addEventListener('click', () => { state.screen = 'home'; render(); });
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => reg.update()).catch(() => {}));
 }
 
 const sharedResult = loadResultFromURL();
@@ -1056,6 +1438,10 @@ if (sharedResult) {
   state.result = sharedResult;
   state.screen = 'result';
   localStorage.setItem('innerAnimalResult', JSON.stringify(sharedResult));
+} else {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('animals') === '1') state.screen = 'animals';
+  if (params.get('start') === '1') state.screen = 'question';
 }
 
 render();

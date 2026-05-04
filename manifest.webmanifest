@@ -1,14 +1,62 @@
 {
+  "id": "/",
   "name": "INNER ANIMAL",
   "short_name": "INNER ANIMAL",
   "description": "48の質問で、選び方のクセを動物タイプに。",
-  "start_url": "./index.html",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "background_color": "#fffaf3",
   "theme_color": "#f2bfc8",
   "orientation": "portrait",
+  "categories": [
+    "lifestyle",
+    "entertainment"
+  ],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "診断をはじめる",
+      "short_name": "診断",
+      "description": "INNER ANIMAL の診断をはじめる",
+      "url": "/?start=1",
+      "icons": [
+        {
+          "src": "/assets/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "16のアニマルを見る",
+      "short_name": "アニマル",
+      "description": "16の動物タイプを見る",
+      "url": "/?animals=1",
+      "icons": [
+        {
+          "src": "/assets/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

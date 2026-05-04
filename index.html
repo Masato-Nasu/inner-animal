@@ -4,12 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f7d9dc" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="INNER ANIMAL" />
+  <meta name="application-name" content="INNER ANIMAL" />
   <meta name="description" content="48の質問で、選び方のクセを動物タイプに。INNER ANIMALは、かわいい顔をした精密な動物タイプ診断です。" />
   <title>INNER ANIMAL | あなたの中の動物がわかる診断</title>
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
-  <link rel="icon" href="./assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
+  <link rel="icon" sizes="192x192" href="/assets/icons/icon-192.png" />
+  <link rel="icon" sizes="512x512" href="/assets/icons/icon-512.png" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -33,6 +39,7 @@
       <div class="hero-animals" id="heroAnimals" aria-hidden="true"></div>
       <p class="micro-copy">見た目はかわいい動物診断。<br>中身は、あなたの選択のクセを丁寧に読みます。</p>
       <button class="primary-btn" id="startBtn" type="button">診断をはじめる</button>
+      <button class="secondary-btn install-btn" id="installPwaBtn" type="button">アプリをホーム画面に追加</button>
       <button class="secondary-btn" id="animalsBtn" type="button">16のアニマルを見る</button>
       <button class="secondary-btn" id="resumeBtn" type="button">前回の結果を見る</button>
     </section>
@@ -56,6 +63,6 @@
     </section>
   </template>
 
-  <script src="./app.js" defer></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>
